@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+  <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+  <appender name="ConsoleKubernetes" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>[%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="Sentry" class="io.sentry.logback.SentryAppender"/>
+
+  <springProfile name="dev | it">
+    <root level="INFO">
+      <appender-ref ref="CONSOLE"/>
+    </root>
+  </springProfile>
+  <springProfile name="test | stage | prod | production">
+    <root level="INFO">
+      <appender-ref ref="Sentry"/>
+      <appender-ref ref="ConsoleKubernetes"/>
+    </root>
+  </springProfile>
+</configuration>

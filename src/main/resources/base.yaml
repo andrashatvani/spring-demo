@@ -1,0 +1,121 @@
+logging:
+  level:
+    at.wrwks: INFO
+    com.example: INFO
+    io.micrometer.core.instrument.binder.kafka.KafkaMetrics: WARN
+    org.apache.http.impl.client.TargetAuthenticationStrategy: ERROR
+    org.apache.kafka: WARN
+    org.springframework: WARN
+    root: INFO
+    _org.springframework.web.reactive.HandlerMapping.Mappings: debug
+management:
+  endpoint:
+    health:
+      group:
+        readiness:
+          include: binders,streamsAndStateStores
+        liveness:
+          include: ping,binders
+        easyname:
+          include: diskSpace
+          show-details: when-authorized
+      show-details: WHEN_AUTHORIZED
+      roles: ACTUATOR
+      validate-group-membership: false
+  endpoints:
+    enabled-by-default: true
+    web.exposure:
+      exclude: 'shutdown, restart'
+      include: '*'
+  metrics:
+    tags:
+      project: demo
+      application: ${spring.application.name}
+  server:
+    base-path: /
+server:
+  shutdown: graceful
+spring:
+  aop:
+    auto: true
+    proxy-target-class: true
+  cloud:
+    stream:
+      default:
+        group: 'wrwks-${spring.application.name}'
+        consumer:
+          header-mode: headers
+          max-attempts: 3
+        producer:
+          header-mode: headers
+      kafka:
+        binder:
+          auto-add-partitions: false
+          auto-create-topics: false
+          header-mapper-bean-name: defaultKafkaHeaderMapper
+          consumer-properties:
+            allow.auto.create.topics: false
+            enable.auto.commit: false
+            isolation.level: read_committed
+            spring.json.use.type.headers: false
+            spring.json.trusted.packages: '*'
+          producer-properties:
+            acks: ${KAFKA_ACKS:all}
+            key.serializer: org.apache.kafka.common.serialization.StringSerializer
+            max.in.flight.requests.per.connection: 1
+            spring.json.add.type.headers: false
+          required-acks: -1
+        consumer:
+          header-mode: headers
+          max-attempts: 3
+        default:
+          producer:
+            configuration:
+              key:
+                serializer: org.apache.kafka.common.serialization.StringSerializer
+        producer:
+          header-mode: headers
+        streams:
+          binder:
+            auto-add-partitions: true
+            auto-create-topics: true
+            applicationId: '${spring.cloud.stream.default.group}'
+            configuration:
+              # consumer
+              allow.auto.create.topics: true
+              enable.auto.commit: false
+              #producer
+              acks: ${KAFKA_ACKS:all}
+              key.serializer: org.apache.kafka.common.serialization.StringSerializer
+              max.in.flight.requests.per.connection: 1
+              max.request.size: 52428800
+              batch.size: ${KAFKA_BATCH_SIZE:65536}
+              linger.ms: '${LINGER_MS:1}'
+              # common
+              statestore.cache.max.bytes: 52428800
+              compression.type: zstd
+              default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+              default.value.serde: com.example.event.DefaultJsonSerde
+              processing.guarantee: ${KAFKA_PROCESSING_GUARANTEE:exactly_once_v2}
+              spring.json.add.type.headers: false
+              spring.json.trusted.packages: '*'
+              spring.json.use.type.headers: false
+              spring.json.value.type.method: com.example.event.JsonValueTypeResolver.resolve
+              topology.optimization: all
+            min-partition-count: 10
+            required-acks: -1
+            include-stopped-processors-for-health-check: true
+  lifecycle:
+    timeout-per-shutdown-phase: 60s
+  main:
+    allow-bean-definition-overriding: true
+    web-application-type: reactive
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+    user:
+      name: '${spring.application.name}'
+  threads:
+    virtual:
+      enabled: true

@@ -1,0 +1,32 @@
+spring:
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: localhost:9092
+          replication-factor: 1
+          consumer-properties:
+            auto.offset.reset: earliest
+          producer-properties:
+            max.block.ms: 5000
+        streams:
+          binder:
+            brokers: localhost:9092
+            configuration:
+              # consumer
+              auto.offset.reset: earliest #must be earliest
+              #producer
+              max.block.ms: 10000
+              # common
+              replication.factor: 1
+              state.dir: ${java.io.tmpdir}/it
+              num.stream.threads: 4
+              default.dsl.store: in_memory
+            required-acks: -1
+          #bindings:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: "http://definedinmock:1234/auth"
+    user.password: asdfasdf

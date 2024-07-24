@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: example
+  cloud:
+    function:
+      definition:
+        dummyAggregate
+    stream:
+      bindings:
+        dummyAggregate-in-0:
+          destination: wrwks-dummy-dummy-event-privat-1
+        dummyAggregate-out-0:
+          destination: wrwks-dummy-dummy-aggregat-privat-1
+        dummyEventPublisher-out-0:
+          destination: dummy-topic
+      kafka:
+        streams:
+          bindings:
+            dummyAggregate-in-0:
+              consumer:
+                application-id: '${spring.cloud.stream.kafka.streams.binder.applicationId}-dummyAggregate'
+                start-offset: earliest
